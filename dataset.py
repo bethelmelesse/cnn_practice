@@ -1,5 +1,5 @@
 from torchvision import datasets
-from torchvision.transforms import ToTensor, Lambda, Compose
+from torchvision.transforms import ToTensor
 
 
 # Download traning and test data from open datasets --- MNIST

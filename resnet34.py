@@ -1,7 +1,7 @@
 # Import libraries
 import torch
 from tqdm import tqdm
-from torch import batch_norm, nn 
+from torch import nn 
 from torch.utils.data import DataLoader 
 
 from utils import *
@@ -99,6 +99,7 @@ class ResNet(nn.Module):
 
 model = ResNet().to(device)
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=weight_decay)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=1)
 
 # Accuracy 
 def accuracy(y_pred, target):
@@ -121,7 +122,6 @@ def train():
            print('\033[32m' + f"Step = {cur_step}, Train Loss = {loss:.3f}, Train Accuracy = {accuracy_batch:.2f}%" + '\033[0m')
         optimizer.step()
         cur_step += 1
-        # print(cur_step)
 
 def test():
     model.eval()
@@ -142,10 +142,14 @@ def test():
     total_accuracy = total_accuracy /step
     print('\033[31m' + f"Test Loss = {total_loss:.3f}, Test Accuracy = {total_accuracy:.2f}%" + '\033[0m')
     model.train()
+    return total_loss
 
 for i in tqdm(range(epoch)):
     newline()
     newline()
     print('\033[34m' + f"Epoch {i+1}" + '\033[0m')
     train()
-    test()
+    test_loss = test()
+    scheduler.step(test_loss)
+    print(f"Learning Rate = {optimizer.param_groups[0]['lr']}")
+          
